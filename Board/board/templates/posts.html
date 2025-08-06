@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>게시판</title>
+  <link rel="stylesheet" href="/static/posts.css">
+</head>
+<body>
+  <h1>📋 게시글 목록</h1>
+
+  <form onsubmit="createPost(event)">
+    <input type="text" id="title" placeholder="제목" required>
+    <br><br>
+    <textarea id="content" placeholder="내용" rows="4" cols="40" required></textarea>
+    <br><br>
+    <button type="submit">글 작성</button>
+  </form>
+
+  <hr>
+
+  <ul id="post-list"></ul>
+
+  <script>
+    async function loadPosts() {
+      const res = await fetch("/posts/");
+      const posts = await res.json();
+      const list = document.getElementById("post-list");
+      list.innerHTML = "";
+      posts.forEach(post => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${post.id} - ${post.title}</strong> <br><p>${post.content}</p><small>${post.author_username}</samll>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function createPost(event) {
+      event.preventDefault();
+      const title = document.getElementById("title").value;
+      const content = document.getElementById("content").value;
+      const author_id = localStorage.getItem("user_id");
+
+      const res = await fetch("/posts/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, author_id })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("✅ 글 작성 완료!");
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+        loadPosts();
+      } else {
+        alert("❌ 글 작성 실패");
+      }
+    }
+
+    loadPosts();  // 최초 로딩 시 게시글 목록 표시
+  </script>
+</body>
+</html>
